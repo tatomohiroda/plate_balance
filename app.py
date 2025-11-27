@@ -1,4 +1,4 @@
-# app.py (デザイン付き軽量版)
+# app.py （Plate Balance 基礎版・ピンクテーマ）
 
 import sys
 from pathlib import Path
@@ -9,100 +9,6 @@ import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
-
-
-# ---------------------------
-#  💅 カスタムデザイン
-# ---------------------------
-def set_custom_style():
-    st.markdown(
-        """
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;600;800&display=swap');
-
-        html, body, [data-testid="stAppViewContainer"] {
-            background: #fff7f1;
-            font-family: 'M PLUS Rounded 1c', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        [data-testid="stAppViewContainer"] > .main {
-            max-width: 780px;
-            margin: 0 auto;
-            padding-top: 2rem;
-            padding-bottom: 3rem;
-        }
-
-        h1, h2, h3 {
-            font-weight: 800 !important;
-            letter-spacing: 0.03em;
-        }
-
-        h1 {
-            font-size: 2.3rem !important;
-        }
-
-        .block-container {
-            padding-top: 1.5rem;
-        }
-
-        /* expander（「候補から食材をえらぶ」など） */
-        [data-testid="stExpander"] {
-            border-radius: 1rem;
-            border: 1px solid #f0d9cf;
-            background: #fffdfb;
-        }
-
-        [data-testid="stExpander"] > div {
-            padding: 0.4rem 0.8rem 0.8rem 0.8rem;
-        }
-
-        /* 入力欄・セレクトボックス */
-        .stTextInput > div > div > input,
-        .stTextArea textarea,
-        .stNumberInput input {
-            border-radius: 0.9rem !important;
-            border: 1px solid #f2cfc5 !important;
-            background-color: #fffaf7 !important;
-        }
-
-        /* メインボタン */
-        .stButton > button[kind="primary"] {
-            border-radius: 999px;
-            background: linear-gradient(135deg, #ff9aa2, #ffb7b2);
-            color: white;
-            border: none;
-            padding: 0.5rem 1.6rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            box-shadow: 0 8px 14px rgba(255, 150, 150, 0.35);
-        }
-
-        .stButton > button[kind="primary"]:hover {
-            filter: brightness(1.03);
-            transform: translateY(-1px);
-            box-shadow: 0 10px 18px rgba(255, 150, 150, 0.45);
-        }
-
-        /* 他のボタンも少し丸く */
-        .stButton > button:not([kind="primary"]) {
-            border-radius: 999px;
-        }
-
-        /* metric（合計カロリーなど） */
-        [data-testid="stMetric"] {
-            padding: 0.8rem 1rem;
-            border-radius: 1.2rem;
-            background: #fffdfb;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-
-        [data-testid="stMetricValue"] {
-            font-weight: 800;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 # ---------------------------
@@ -139,6 +45,7 @@ def search_foods(query: str, df: pd.DataFrame, limit: int = 20):
 def parse_free_text(text: str, df: pd.DataFrame):
     """
     テキストをパースして [{'name': 食品名, 'grams': g}, ...] にする
+    対応例：さつまいも 130g
     """
     lines = text.split("\n")
     results = []
@@ -148,7 +55,7 @@ def parse_free_text(text: str, df: pd.DataFrame):
         if not line:
             continue
 
-        # 例：「さつまいも 130g」
+        # 「食材名 数字g」を拾う
         m = re.search(r"(.+?)\s*([0-9]+)\s*g", line)
         if not m:
             continue
@@ -265,20 +172,161 @@ def main():
         layout="centered",
     )
 
-    # 💅 デザイン反映
-    set_custom_style()
+    st.markdown(
+    """
+    <style>
+    /* ------------------------------
+       ベース
+    ------------------------------ */
+    .stApp {
+        background-color: #fffbfd;
+        color: #40222e;
+        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    }
 
+    /* ページ全体の幅をスマホでも読みやすく */
+    .block-container {
+        max-width: 900px;
+        padding-top: 1.5rem;
+        padding-bottom: 4rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    /* ------------------------------
+       見出し・テキスト
+    ------------------------------ */
+    h1 {
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #40222e;
+        /* PC とスマホ両対応で自動調整 */
+        font-size: clamp(1.8rem, 5vw, 2.4rem);
+        margin-bottom: 0.2rem;
+    }
+
+    h2, h3 {
+        color: #4b2937;
+        font-weight: 700;
+        margin-top: 1.8rem;
+        margin-bottom: 0.6rem;
+        font-size: clamp(1.2rem, 3.4vw, 1.4rem);
+    }
+
+    p, label, .stMarkdown {
+        font-size: 0.95rem;
+    }
+
+    /* Expander のタイトル（🍙 食材を追加する 等） */
+    .streamlit-expanderHeader, .st-expanderHeader {
+        color: #4b2937 !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+    }
+
+    /* ------------------------------
+       入力系（共通スタイル）
+    ------------------------------ */
+    /* テキスト系 (検索, gの入力, 自由入力など) */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stDateInput > div > div > input,
+    textarea {
+        background: #ffeaf1 !important;
+        border: 1px solid #f7c8d9 !important;
+        border-radius: 12px !important;
+        padding: 10px 12px !important;
+        font-size: 1rem !important;
+        color: #20141a !important;
+    }
+
+    textarea {
+        line-height: 1.5;
+    }
+
+    /* セレクトボックス（どのごはん？／候補） */
+    /* data-baseweb="select" に当てると高さも崩れにくい */
+    div[data-baseweb="select"] > div {
+        background: #ffeaf1 !important;
+        border-radius: 12px !important;
+        border: 1px solid #f7c8d9 !important;
+        padding: 0px 10px !important;  /* 縦は少なめにして文字が切れないように */
+    }
+
+    div[data-baseweb="select"] div {
+        color: #20141a !important;
+        font-size: 1rem !important;
+    }
+
+    /* ラベル文字色 */
+    .stDateInput label, .stSelectbox label, .stNumberInput label, .stTextInput label {
+        color: #4b2937 !important;
+        font-weight: 500;
+        font-size: 0.92rem;
+    }
+
+    /* ------------------------------
+       ボタン
+    ------------------------------ */
+    .stButton > button {
+        background: linear-gradient(90deg, #ff7fae, #ff9ac3);
+        color: white;
+        border-radius: 999px;
+        border: none;
+        padding: 0.45rem 1.4rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 10px rgba(255, 127, 174, 0.35);
+    }
+    .stButton > button:hover {
+        background: linear-gradient(90deg, #ff6aa1, #ff8fbf);
+        box-shadow: 0 6px 16px rgba(255, 127, 174, 0.5);
+    }
+
+    /* ------------------------------
+       カードっぽく見せる枠
+    ------------------------------ */
+    .st-expander, .st-emotion-cache-1r6slb0 {
+        border-radius: 16px !important;
+        border: 1px solid #f6c4d6 !important;
+        background-color: #fff7fb !important;
+    }
+
+    /* メトリクス（合計カロリー等） */
+    [data-testid="stMetric"] {
+        background: #fff7fb;
+        border-radius: 16px;
+        padding: 0.8rem 0.9rem;
+        border: 1px solid #f6c4d6;
+    }
+
+    /* ------------------------------
+       スマホ向け微調整
+    ------------------------------ */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-left: 0.9rem;
+            padding-right: 0.9rem;
+        }
+        h1 {
+            margin-top: 0.5rem;
+        }
+        .stButton > button {
+            width: 100%;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+    # ---------------- UI 本体 ----------------
     init_session_state()
     foods_df = load_foods()
 
-    # タイトル周りをちょっと可愛く
-    st.markdown("### Plate Balance（基礎版） 🍽")
-    st.markdown(
-        "<div style='color:#8c6b63; font-size:0.95rem; margin-bottom:0.8rem;'>"
-        "自炊ごはんの栄養バランスを、ふんわり見える化するミニアプリ"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    st.title("Plate Balance（基礎版）")
+    st.caption("自炊ごはんの栄養バランスを、ふんわり見える化するミニアプリ")
 
     # 日付 & 食事区分
     col1, col2 = st.columns(2)
