@@ -1,15 +1,108 @@
-# app.py (軽量版 part 1)
+# app.py (デザイン付き軽量版)
 
 import sys
 from pathlib import Path
 from datetime import date
 import re
-
 import streamlit as st
 import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
+
+
+# ---------------------------
+#  💅 カスタムデザイン
+# ---------------------------
+def set_custom_style():
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;600;800&display=swap');
+
+        html, body, [data-testid="stAppViewContainer"] {
+            background: #fff7f1;
+            font-family: 'M PLUS Rounded 1c', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        [data-testid="stAppViewContainer"] > .main {
+            max-width: 780px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
+        h1, h2, h3 {
+            font-weight: 800 !important;
+            letter-spacing: 0.03em;
+        }
+
+        h1 {
+            font-size: 2.3rem !important;
+        }
+
+        .block-container {
+            padding-top: 1.5rem;
+        }
+
+        /* expander（「候補から食材をえらぶ」など） */
+        [data-testid="stExpander"] {
+            border-radius: 1rem;
+            border: 1px solid #f0d9cf;
+            background: #fffdfb;
+        }
+
+        [data-testid="stExpander"] > div {
+            padding: 0.4rem 0.8rem 0.8rem 0.8rem;
+        }
+
+        /* 入力欄・セレクトボックス */
+        .stTextInput > div > div > input,
+        .stTextArea textarea,
+        .stNumberInput input {
+            border-radius: 0.9rem !important;
+            border: 1px solid #f2cfc5 !important;
+            background-color: #fffaf7 !important;
+        }
+
+        /* メインボタン */
+        .stButton > button[kind="primary"] {
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ff9aa2, #ffb7b2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.6rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            box-shadow: 0 8px 14px rgba(255, 150, 150, 0.35);
+        }
+
+        .stButton > button[kind="primary"]:hover {
+            filter: brightness(1.03);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(255, 150, 150, 0.45);
+        }
+
+        /* 他のボタンも少し丸く */
+        .stButton > button:not([kind="primary"]) {
+            border-radius: 999px;
+        }
+
+        /* metric（合計カロリーなど） */
+        [data-testid="stMetric"] {
+            padding: 0.8rem 1rem;
+            border-radius: 1.2rem;
+            background: #fffdfb;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        [data-testid="stMetricValue"] {
+            font-weight: 800;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ---------------------------
@@ -19,6 +112,8 @@ sys.path.insert(0, str(BASE_DIR))
 def load_foods():
     csv_path = BASE_DIR / "foods.csv"
     return pd.read_csv(csv_path)
+
+
 # ---------------------------
 #  食材検索
 # ---------------------------
@@ -70,6 +165,8 @@ def parse_free_text(text: str, df: pd.DataFrame):
         results.append({"name": row["name"], "grams": grams})
 
     return results
+
+
 # ---------------------------
 #  栄養計算
 # ---------------------------
@@ -140,6 +237,8 @@ def compute_nutrients(items, df: pd.DataFrame):
         total["vitC"] += vitC
 
     return total, details
+
+
 # ---------------------------
 #  セッション状態の管理
 # ---------------------------
@@ -166,11 +265,20 @@ def main():
         layout="centered",
     )
 
+    # 💅 デザイン反映
+    set_custom_style()
+
     init_session_state()
     foods_df = load_foods()
 
-    st.title("Plate Balance（基礎版）")
-    st.caption("自炊ごはんの栄養バランスを、さくっと見える化")
+    # タイトル周りをちょっと可愛く
+    st.markdown("### Plate Balance（基礎版） 🍽")
+    st.markdown(
+        "<div style='color:#8c6b63; font-size:0.95rem; margin-bottom:0.8rem;'>"
+        "自炊ごはんの栄養バランスを、ふんわり見える化するミニアプリ"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
     # 日付 & 食事区分
     col1, col2 = st.columns(2)
@@ -232,6 +340,7 @@ def main():
                 for item in items:
                     add_selected_item(item["name"], item["grams"])
                 st.success(f"{len(items)} 件の食材を追加しました")
+
     st.markdown("---")
 
     # =========================
